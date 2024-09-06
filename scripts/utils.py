@@ -59,3 +59,9 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
         raise
 
     return surveys
+
+
+# Store surveys 
+def store_surveys(survey_list, path):
+    survey_list.to_csv(path + "survey_list.csv", index=False)
+    print("Surveys downloaded.")

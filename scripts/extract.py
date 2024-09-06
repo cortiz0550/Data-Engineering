@@ -2,11 +2,6 @@ import utils
 import os
 import pandas as pd
 
-""" Here we want to start with gathering the config files """
-base_path = os.getcwd()
-config_path = base_path + "\\config\\qualtrics_config.json"
-config = utils.load_config(config_path)
-
 
 # Function to get a list of all surveys as json.
 def list_surveys(config):
@@ -20,12 +15,17 @@ def list_surveys(config):
     response = utils.make_api_request(url=url, headers=headers)
     return response
 
+
+""" Here we want to start with gathering the config files """
+base_path = os.getcwd()
+config_path = base_path + "\\config\\qualtrics_config.json"
+output_path = base_path + "\\Data\\"
+
+# Load config file.
+config = utils.load_config(config_path)
+
 # 2. Make request to survey endpoint
 survey_list = pd.DataFrame(list_surveys(config=config))
 
-
-
 # 3. Store as a csv in a datalake.
-output_folder = base_path + "\\Data\\"
-survey_list.to_csv(output_folder + "survey_list.csv", index=False)
-print("Surveys downloaded.")
+utils.store_surveys(survey_list, path=output_path)
