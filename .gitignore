@@ -7,3 +7,6 @@
 config/
 venv/
 Data/
+
+# Individual files
+plan.txt

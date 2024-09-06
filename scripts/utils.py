@@ -65,3 +65,35 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
 def store_surveys(survey_list, path):
     survey_list.to_csv(path + "survey_list.csv", index=False)
     print("Surveys downloaded.")
+
+
+# Logging functions
+def setup_logging(log_dir='logs', log_file='pipeline.log'):
+    """
+    Sets up logging configuration to log messages to a file and console.
+    
+    Args:
+        log_dir (str): Directory where the log file will be stored.
+        log_file (str): Name of the log file.
+    """
+    # Create the logs directory if it doesn't exist
+    os.makedirs(log_dir, exist_ok=True)
+
+    # Set up the log file path
+    log_path = os.path.join(log_dir, log_file)
+    
+    # Define the logging format
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+    
+    # Configure the root logger
+    logging.basicConfig(
+        level=logging.INFO,  # Set the lowest-severity log level that the logger will handle
+        format=log_format,  # Format of the log messages
+        handlers=[
+            logging.FileHandler(log_path),  # Log to the file
+            logging.StreamHandler()  # Also log to the console
+        ]
+    )
+    
+    # Log startup message
+    logging.info("Logging initialized. Log file: %s", log_path)
