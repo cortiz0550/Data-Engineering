@@ -6,7 +6,7 @@
 # Directories #
 config/
 venv/
-Data/
+data/
 
 # Individual files
 plan.txt

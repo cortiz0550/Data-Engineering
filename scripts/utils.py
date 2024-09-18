@@ -9,7 +9,8 @@ def load_config(path):
         config = json.load(json_file)
     
     for key, value in config.items():
-        if isinstance(value, str) and value.startswith("QX_"):
+        # Environment variables for this start with QX or QB
+        if isinstance(value, str) and (value.startswith("QX_") or value.startswith("QB_")):
             # Replace with the actual environment variable
             config[key] = os.getenv(value, f"{value}_not_set")
 
@@ -62,8 +63,8 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
 
 
 # Store surveys 
-def store_surveys(survey_list, path):
-    survey_list.to_csv(path + "survey_list.csv", index=False)
+def store_surveys(survey_list, path, filename="survey_list.csv"):
+    survey_list.to_csv(path + filename, index=False)
     print("Surveys downloaded.")
 
 
