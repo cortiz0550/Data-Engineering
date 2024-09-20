@@ -3,6 +3,42 @@ import json
 import os
 import logging
 import time
+import pandas as pd
+
+
+# This gets the paths for the whole pipeline.
+def get_paths():
+
+    paths = {
+        "base_path": os.getcwd(),
+        "qx_config_path": "\\config\\qualtrics_config.json",
+        "qb_config_path": "\\config\\quickbase_config.json",
+        "raw_data_path": "\\data\\raw\\", # change this if you want to put the data somewhere else.
+        "processed_data_path": "\\data\\processed\\" # change this if you want to put the data somewhere else.
+    }
+
+    return paths
+
+def get_file(path):
+    ext = path.split(".")[-1]
+    if ext == "csv":
+        df = pd.read_csv(path)
+    elif ext == "json":
+        df = pd.read_json(path)
+    
+    return df
+
+# Check and load payload if it is less than 40 mb.
+def check_file_size(path):
+    file_size = os.path.getsize(path)
+
+    if (file_size / 1048576) > 40:
+        print("File too big.")
+        return None
+    else:
+        with open(path, "r") as infile:
+            payload = json.load(infile)
+        return payload
 
 def load_config(path):
     with open(path, 'r') as json_file:
@@ -32,6 +68,16 @@ def load_config(path):
     
     return resolved_config
 
+def list_surveys(config):
+    url = config["survey_endpoint"]
+
+    headers = {
+        "Accept": "application/json",
+        "X-API-TOKEN": config.get("api_key")
+    }
+    
+    response = make_api_request(url=url, headers=headers)
+    return pd.DataFrame(response)
 
 # This adds an Exponential Backoff Delay to the get request when calling the API.
 def make_api_request(url, headers, method="GET", data=None, max_attempts=3, timeout=30):
@@ -73,14 +119,12 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
                 print(f"Error: {req.status_code}")
                 req.raise_for_status()
             else:
-                print("Surveys uploaded successfully.")
+                print("Surveys uploaded to Quickbase successfully.")
         except Exception as e:
             logging.error(f"Request failed: {e}")
             print(e)
     
         return req
-
-
 
 # Store surveys 
 def store_surveys(survey_list, path, filename="survey_list.csv"):
@@ -89,8 +133,24 @@ def store_surveys(survey_list, path, filename="survey_list.csv"):
     else:
         with open(path + filename, "w") as outfile:
             json.dump(survey_list, outfile, indent=4)
-    print("Surveys downloaded.")
+    print(f"{filename} successfully stored.")
 
+def get_status(df):
+    df["isActive"] = df["isActive"].astype(str).replace(["True", "False"], ["Active", "Inactive"])
+    return df
+
+def csv_to_json(df, config):
+
+    result = []
+
+    for _, row in df.iterrows():
+        row_dict = {}
+        for col in df.columns:
+            row_dict[col] = {"value": row[col]}
+        
+        result.append(row_dict)
+
+    return result
 
 # Logging functions
 def setup_logging(log_dir='logs', log_file='pipeline.log'):
