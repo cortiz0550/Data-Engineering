@@ -18,7 +18,7 @@ def transform_data():
     column_names = config.get("column_ids")
 
     # Get the data from datalake
-    df = get_file(raw_data_path + "survey_list.csv")
+    df = get_file(raw_data_path + "current_survey_list.csv")
 
     # Clean up the dataset a bit.
     df.drop(columns=columns_to_drop, axis=1, inplace=True)

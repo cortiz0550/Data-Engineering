@@ -1,3 +1,4 @@
+from datetime import date
 import requests
 import json
 import os
@@ -79,6 +80,35 @@ def list_surveys(config):
     response = make_api_request(url=url, headers=headers)
     return pd.DataFrame(response)
 
+# Remove any surveys we have already recieved and that th status has not changed for.
+def remove_existing_surveys(raw_data_path, survey_list):
+
+    try:
+        existing_surveys = pd.read_csv(raw_data_path + "current_survey_list.csv")
+    except FileNotFoundError:
+        return survey_list
+
+    # Left merge gets only the rows in the most recent survey list
+    all_surveys_df = survey_list.merge(existing_surveys.drop_duplicates(), on=list(survey_list.columns), how="left", indicator=True)
+    all_surveys_df = all_surveys_df[all_surveys_df["_merge"] == "left_only"]
+    all_surveys_df = all_surveys_df.drop(["_merge"], axis=1)
+    
+    return all_surveys_df
+
+def rename_file(path):
+
+    updated_path = path.replace("current_survey_list", "survey_list")
+    filename = updated_path.split(".")
+    filename.insert(len(filename) - 1, "_" + str(date.today()))
+    new_filename = "".join(filename[:-1]) + "." + filename[-1]
+
+    try:
+        os.replace(path, new_filename)
+    except FileNotFoundError:
+        print("Creating new survey list file.")
+
+
+
 # This adds an Exponential Backoff Delay to the get request when calling the API.
 def make_api_request(url, headers, method="GET", data=None, max_attempts=3, timeout=30):
     base_delay = 1
@@ -127,8 +157,11 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
         return req
 
 # Store surveys 
-def store_surveys(survey_list, path, filename="survey_list.csv"):
-    if filename.split(".")[-1] == "csv":
+def store_surveys(survey_list, path, filename="current_survey_list.csv"):
+    filename_breakdown = filename.split(".")
+    ext = filename_breakdown[-1]
+
+    if ext == "csv":
         survey_list.to_csv(path + filename, index=False)
     else:
         with open(path + filename, "w") as outfile:
