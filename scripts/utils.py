@@ -38,33 +38,57 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
     base_delay = 1
     attempts = 0
 
-    # Loop through until max attempts is reached or a successful response.
-    while attempts < max_attempts:
-        try:
-            surveys = []
-            while url is not None:
-                response = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
-                response.raise_for_status()
-                response_json = response.json()
-                url = response_json["result"]["nextPage"]
-                surveys.extend(response_json["result"]["elements"])
-            break
-        except Exception as e:
-            logging.error(f"Request failed on attempt {attempts}: {e}")
-            attempts += 1
+    # Run this for GET requests (survey listing)
+    if method == "GET":
+        # Loop through until max attempts is reached or a successful response.
+        while attempts < max_attempts:
+            try:
+                surveys = []
 
-            delay = base_delay * (2 ** attempts)
-            time.sleep(delay)
-        
+                # This loops through until all surveys are gathered.
+                while url is not None:
+                    response = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
+                    response.raise_for_status()
+                    response_json = response.json()
+                    url = response_json["result"]["nextPage"]
+                    surveys.extend(response_json["result"]["elements"])
+                break
+            except Exception as e:
+                logging.error(f"Request failed on attempt {attempts}: {e}")
+                attempts += 1
+
+                delay = base_delay * (2 ** attempts)
+                time.sleep(delay)
+            
+        else:
+            raise
+    
+        return surveys
+
+    # Run this for POST requests
     else:
-        raise
+        try:
+            req = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
+            if req.status_code != 200:
+                print(f"Error: {req.status_code}")
+                req.raise_for_status()
+            else:
+                print("Surveys uploaded successfully.")
+        except Exception as e:
+            logging.error(f"Request failed: {e}")
+            print(e)
+    
+        return req
 
-    return surveys
 
 
 # Store surveys 
 def store_surveys(survey_list, path, filename="survey_list.csv"):
-    survey_list.to_csv(path + filename, index=False)
+    if filename.split(".")[-1] == "csv":
+        survey_list.to_csv(path + filename, index=False)
+    else:
+        with open(path + filename, "w") as outfile:
+            json.dump(survey_list, outfile, indent=4)
     print("Surveys downloaded.")
 
 
