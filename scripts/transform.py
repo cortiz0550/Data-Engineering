@@ -1,4 +1,4 @@
-from scripts.utils import get_paths, load_config, get_status, store_surveys, csv_to_json, get_file
+from scripts.utils import get_paths, load_config, get_status, store_surveys, csv_to_json, get_file, remove_existing_surveys
 
 # We need to change any TRUE values in isActive to "Active" and FALSE to "Inactive"
 
@@ -17,7 +17,7 @@ def transform_data():
     columns_to_drop = config.get("columns_to_drop")
 
     # Get the data from datalake
-    df = get_file(raw_data_path + "new_surveys_list.csv")
+    df = remove_existing_surveys(raw_data_path)
 
     # Clean up the dataset a bit.
     df.drop(columns=columns_to_drop, axis=1, inplace=True)

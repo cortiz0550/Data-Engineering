@@ -50,13 +50,10 @@ def load_config(path):
 
 def rename_file(path):
 
-    updated_path = path.replace("current_survey_list", "survey_list")
-    filename = updated_path.split(".")
-    filename.insert(len(filename) - 1, "_" + str(date.today()))
-    new_filename = "".join(filename[:-1]) + "." + filename[-1]
+    updated_path = path.replace("master_surveys_list", "previous_surveys_list")
 
     try:
-        os.replace(path, new_filename)
+        os.replace(path, updated_path)
     except FileNotFoundError:
         print("Creating new survey list file.")
 
@@ -134,15 +131,18 @@ def list_surveys(config):
     return pd.DataFrame(response)
 
 # Remove any surveys we have already recieved and that the status has not changed for.
-def remove_existing_surveys(raw_data_path, survey_list):
+def remove_existing_surveys(raw_data_path):
+
+    new_surveys = pd.read_csv(raw_data_path + "master_surveys_list.csv")
+    cols = list(new_surveys.columns)
 
     try:
-        existing_surveys = pd.read_csv(raw_data_path + "master_surveys_list.csv")
+        existing_surveys = pd.read_csv(raw_data_path + "previous_surveys_list.csv")
     except FileNotFoundError:
-        return survey_list
+        existing_surveys = pd.DataFrame(columns=cols)
 
     # Left merge gets only the rows in the most recent survey list
-    all_surveys_df = survey_list.merge(existing_surveys.drop_duplicates(), on=list(survey_list.columns), how="left", indicator=True)
+    all_surveys_df = new_surveys.merge(existing_surveys.drop_duplicates(), on=cols, how="left", indicator=True)
     all_surveys_df = all_surveys_df[all_surveys_df["_merge"] == "left_only"]
     all_surveys_df = all_surveys_df.drop(["_merge"], axis=1)
     
