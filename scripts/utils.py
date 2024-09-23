@@ -109,7 +109,7 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
     
         return None
 
-def store_surveys(survey_list, path, filename="current_survey_list.csv"):
+def store_surveys(survey_list, path, filename):
     filename_breakdown = filename.split(".")
     ext = filename_breakdown[-1]
 
@@ -137,7 +137,7 @@ def list_surveys(config):
 def remove_existing_surveys(raw_data_path, survey_list):
 
     try:
-        existing_surveys = pd.read_csv(raw_data_path + "current_survey_list.csv")
+        existing_surveys = pd.read_csv(raw_data_path + "master_surveys_list.csv")
     except FileNotFoundError:
         return survey_list
 

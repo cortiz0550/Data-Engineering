@@ -18,6 +18,6 @@ def extract_data():
     # 3. Remove any existing surveys from most recent list.
     filtered_survey_list = remove_existing_surveys(raw_data_path, survey_list)
 
-    # 4. Rename and store as a csv in a datalake.
-    rename_file(raw_data_path + "current_survey_list.csv")
-    store_surveys(filtered_survey_list, path=raw_data_path, filename="current_survey_list.csv")
+    # 4. Store master and new list as csvs in a datalake.
+    store_surveys(survey_list, path=raw_data_path, filename="master_surveys_list.csv")
+    store_surveys(filtered_survey_list, path=raw_data_path, filename="new_surveys_list.csv")

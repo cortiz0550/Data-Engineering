@@ -21,7 +21,6 @@ def load_data():
     }
     payload = check_file_size(processed_data_path + "cleaned_survey_list.json")
 
-    print(len(payload.get("data")))
     if len(payload.get("data")) < 1:
         print("No new surveys to import into Quickbase")
     else:

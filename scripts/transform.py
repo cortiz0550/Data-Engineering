@@ -9,16 +9,15 @@ def transform_data():
     raw_data_path = paths.get("base_path") + paths.get("raw_data_path")
     processed_data_path = paths.get("base_path") + paths.get("processed_data_path")
 
-
-    # Columns to drop. Add more as needed. This could be part of the config file too.
-    columns_to_drop = ["lastModified"]
-
     # Load config to get column rename values.
     config = load_config(qb_config_path)
     column_names = config.get("column_ids")
+    
+    # Columns to drop. Add more as needed. 
+    columns_to_drop = config.get("columns_to_drop")
 
     # Get the data from datalake
-    df = get_file(raw_data_path + "current_survey_list.csv")
+    df = get_file(raw_data_path + "new_surveys_list.csv")
 
     # Clean up the dataset a bit.
     df.drop(columns=columns_to_drop, axis=1, inplace=True)
