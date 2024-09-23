@@ -21,8 +21,11 @@ def load_data():
     }
     payload = check_file_size(processed_data_path + "cleaned_survey_list.json")
 
-
-    # Test api call
-    req = make_api_request(url=url, method="POST", headers=headers, data=payload)
+    print(len(payload.get("data")))
+    if len(payload.get("data")) < 1:
+        print("No new surveys to import into Quickbase")
+    else:
+        # Test api call
+        make_api_request(url=url, method="POST", headers=headers, data=payload)
 
     # If the payload is empty, we should log that and raise a warning.

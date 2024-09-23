@@ -6,7 +6,7 @@ import logging
 import time
 import pandas as pd
 
-
+""" General functions """
 # This gets the paths for the whole pipeline.
 def get_paths():
 
@@ -19,27 +19,6 @@ def get_paths():
     }
 
     return paths
-
-def get_file(path):
-    ext = path.split(".")[-1]
-    if ext == "csv":
-        df = pd.read_csv(path)
-    elif ext == "json":
-        df = pd.read_json(path)
-    
-    return df
-
-# Check and load payload if it is less than 40 mb.
-def check_file_size(path):
-    file_size = os.path.getsize(path)
-
-    if (file_size / 1048576) > 40:
-        print("File too big.")
-        return None
-    else:
-        with open(path, "r") as infile:
-            payload = json.load(infile)
-        return payload
 
 def load_config(path):
     with open(path, 'r') as json_file:
@@ -69,32 +48,6 @@ def load_config(path):
     
     return resolved_config
 
-def list_surveys(config):
-    url = config["survey_endpoint"]
-
-    headers = {
-        "Accept": "application/json",
-        "X-API-TOKEN": config.get("api_key")
-    }
-    
-    response = make_api_request(url=url, headers=headers)
-    return pd.DataFrame(response)
-
-# Remove any surveys we have already recieved and that th status has not changed for.
-def remove_existing_surveys(raw_data_path, survey_list):
-
-    try:
-        existing_surveys = pd.read_csv(raw_data_path + "current_survey_list.csv")
-    except FileNotFoundError:
-        return survey_list
-
-    # Left merge gets only the rows in the most recent survey list
-    all_surveys_df = survey_list.merge(existing_surveys.drop_duplicates(), on=list(survey_list.columns), how="left", indicator=True)
-    all_surveys_df = all_surveys_df[all_surveys_df["_merge"] == "left_only"]
-    all_surveys_df = all_surveys_df.drop(["_merge"], axis=1)
-    
-    return all_surveys_df
-
 def rename_file(path):
 
     updated_path = path.replace("current_survey_list", "survey_list")
@@ -106,8 +59,6 @@ def rename_file(path):
         os.replace(path, new_filename)
     except FileNotFoundError:
         print("Creating new survey list file.")
-
-
 
 # This adds an Exponential Backoff Delay to the get request when calling the API.
 def make_api_request(url, headers, method="GET", data=None, max_attempts=3, timeout=30):
@@ -145,18 +96,19 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
     else:
         try:
             req = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
-            if req.status_code != 200:
+            while req.status_code != 200 and attempts < max_attempts:
                 print(f"Error: {req.status_code}")
-                req.raise_for_status()
+                print(req.json())
+                attempts += 1
+                req = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
             else:
                 print("Surveys uploaded to Quickbase successfully.")
         except Exception as e:
             logging.error(f"Request failed: {e}")
             print(e)
     
-        return req
+        return None
 
-# Store surveys 
 def store_surveys(survey_list, path, filename="current_survey_list.csv"):
     filename_breakdown = filename.split(".")
     ext = filename_breakdown[-1]
@@ -168,8 +120,43 @@ def store_surveys(survey_list, path, filename="current_survey_list.csv"):
             json.dump(survey_list, outfile, indent=4)
     print(f"{filename} successfully stored.")
 
-def get_status(df):
-    df["isActive"] = df["isActive"].astype(str).replace(["True", "False"], ["Active", "Inactive"])
+
+""" Extract functions """
+def list_surveys(config):
+    url = config["survey_endpoint"]
+
+    headers = {
+        "Accept": "application/json",
+        "X-API-TOKEN": config.get("api_key")
+    }
+    
+    response = make_api_request(url=url, headers=headers)
+    return pd.DataFrame(response)
+
+# Remove any surveys we have already recieved and that the status has not changed for.
+def remove_existing_surveys(raw_data_path, survey_list):
+
+    try:
+        existing_surveys = pd.read_csv(raw_data_path + "current_survey_list.csv")
+    except FileNotFoundError:
+        return survey_list
+
+    # Left merge gets only the rows in the most recent survey list
+    all_surveys_df = survey_list.merge(existing_surveys.drop_duplicates(), on=list(survey_list.columns), how="left", indicator=True)
+    all_surveys_df = all_surveys_df[all_surveys_df["_merge"] == "left_only"]
+    all_surveys_df = all_surveys_df.drop(["_merge"], axis=1)
+    
+    return all_surveys_df
+
+
+""" Transform functions"""
+def get_file(path):
+    ext = path.split(".")[-1]
+    if ext == "csv":
+        df = pd.read_csv(path)
+    elif ext == "json":
+        df = pd.read_json(path)
+    
     return df
 
 def csv_to_json(df, config):
@@ -185,7 +172,26 @@ def csv_to_json(df, config):
 
     return result
 
-# Logging functions
+def get_status(df):
+    df["isActive"] = df["isActive"].astype(str).replace(["True", "False"], ["Active", "Inactive"])
+    return df
+
+
+""" Load functions """
+# Check and load payload if it is less than 40 mb.
+def check_file_size(path):
+    file_size = os.path.getsize(path)
+
+    if (file_size / 1048576) > 40:
+        print("File too big.")
+        return None
+    else:
+        with open(path, "r") as infile:
+            payload = json.load(infile)
+        return payload
+
+
+""" Logging functions """
 def setup_logging(log_dir='logs', log_file='pipeline.log'):
     """
     Sets up logging configuration to log messages to a file and console.
