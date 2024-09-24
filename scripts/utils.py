@@ -180,6 +180,7 @@ def get_status(df):
 def check_file_size(path):
     file_size = os.path.getsize(path)
 
+    # Prevent if file is larger than 40mb
     if (file_size / 1048576) > 40:
         logging.critical("File too big.")
         return None
