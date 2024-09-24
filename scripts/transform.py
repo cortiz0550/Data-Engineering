@@ -2,7 +2,7 @@ from scripts.utils import get_paths, load_config, get_status, store_surveys, csv
 
 # We need to change any TRUE values in isActive to "Active" and FALSE to "Inactive"
 
-def transform_data():
+def transform_data(test=False):
     """ Here we want to start with gathering the config files """
     paths = get_paths()
     qb_config_path = paths.get("base_path") + paths.get("qb_config_path")
@@ -16,7 +16,7 @@ def transform_data():
     # Columns to drop. Add more as needed. 
     columns_to_drop = config.get("columns_to_drop")
 
-    # Get the data from datalake
+    # Get the data from datalake and remove any existing surveys.
     df = remove_existing_surveys(raw_data_path)
 
     # Clean up the dataset a bit.

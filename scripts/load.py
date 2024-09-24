@@ -2,7 +2,7 @@
 from scripts.utils import get_paths, make_api_request, load_config, check_file_size
 
 
-def load_data():
+def load_data(test=False):
     """ Here we want to start with gathering the config files """
     paths = get_paths()
     qb_config_path = paths.get("base_path") + paths.get("qb_config_path")

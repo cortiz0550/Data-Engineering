@@ -55,7 +55,7 @@ def rename_file(path):
     try:
         os.replace(path, updated_path)
     except FileNotFoundError:
-        print("Creating new survey list file.")
+        logging.info("Creating new survey list file...")
 
 # This adds an Exponential Backoff Delay to the get request when calling the API.
 def make_api_request(url, headers, method="GET", data=None, max_attempts=3, timeout=30):
@@ -94,15 +94,13 @@ def make_api_request(url, headers, method="GET", data=None, max_attempts=3, time
         try:
             req = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
             while req.status_code != 200 and attempts < max_attempts:
-                print(f"Error: {req.status_code}")
-                print(req.json())
+                logging.warning(f"Error : {req.status_code}...")
                 attempts += 1
                 req = requests.request(method=method, url=url, headers=headers, json=data, timeout=timeout)
             else:
-                print("Surveys uploaded to Quickbase successfully.")
+                logging.info("Surveys uploaded to Quickbase successfully.")
         except Exception as e:
             logging.error(f"Request failed: {e}")
-            print(e)
     
         return None
 
@@ -115,7 +113,7 @@ def store_surveys(survey_list, path, filename):
     else:
         with open(path + filename, "w") as outfile:
             json.dump(survey_list, outfile, indent=4)
-    print(f"{filename} successfully stored.")
+    logging.info(f"{filename} stored...")
 
 
 """ Extract functions """
@@ -183,7 +181,7 @@ def check_file_size(path):
     file_size = os.path.getsize(path)
 
     if (file_size / 1048576) > 40:
-        print("File too big.")
+        logging.critical("File too big.")
         return None
     else:
         with open(path, "r") as infile:
