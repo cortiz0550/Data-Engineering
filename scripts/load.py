@@ -5,8 +5,8 @@ from scripts.utils import get_paths, make_api_request, load_config, check_file_s
 def load_data(test=False):
     """ Here we want to start with gathering the config files """
     paths = get_paths()
-    qb_config_path = paths.get("base_path") + paths.get("qb_config_path")
-    processed_data_path = paths.get("base_path") + paths.get("processed_data_path")
+    qb_config_path = paths.get("qb_config_path")
+    processed_data_path = paths.get("processed_data_path")
 
     config = load_config(qb_config_path)
     config["api_key"] = "QB-User-Token " + config.get("api_key")

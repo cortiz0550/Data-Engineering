@@ -8,8 +8,8 @@ from scripts.utils import load_config, list_surveys, store_surveys, get_paths, r
 def extract_data(test=False):
     """ Here we want to start with gathering the config files """
     paths = get_paths()
-    config_path = paths.get("base_path") + paths.get("qx_config_path")
-    raw_data_path = paths.get("base_path") + paths.get("raw_data_path")
+    config_path = paths.get("qx_config_path")
+    raw_data_path = paths.get("raw_data_path")
 
     filename = "master_surveys_list.csv"
 

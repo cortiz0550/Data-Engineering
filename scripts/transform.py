@@ -5,9 +5,9 @@ from scripts.utils import get_paths, load_config, get_status, store_surveys, csv
 def transform_data(test=False):
     """ Here we want to start with gathering the config files """
     paths = get_paths()
-    qb_config_path = paths.get("base_path") + paths.get("qb_config_path")
-    raw_data_path = paths.get("base_path") + paths.get("raw_data_path")
-    processed_data_path = paths.get("base_path") + paths.get("processed_data_path")
+    qb_config_path = paths.get("qb_config_path")
+    raw_data_path = paths.get("raw_data_path")
+    processed_data_path = paths.get("processed_data_path")
 
     # Load config to get column rename values.
     config = load_config(qb_config_path)

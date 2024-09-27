@@ -10,12 +10,14 @@ import pandas as pd
 # This gets the paths for the whole pipeline.
 def get_paths():
 
+    base_path = os.getcwd()
+
     paths = {
-        "base_path": os.getcwd(),
-        "qx_config_path": "\\config\\qualtrics_config.json",
-        "qb_config_path": "\\config\\quickbase_config.json",
-        "raw_data_path": "\\data\\raw\\", # change this if you want to put the data somewhere else.
-        "processed_data_path": "\\data\\processed\\" # change this if you want to put the data somewhere else.
+        "base_path": base_path,
+        "qx_config_path": os.path.join(base_path, "config\\qualtrics_config.json"),
+        "qb_config_path": os.path.join(base_path, "config\\quickbase_config.json"),
+        "raw_data_path": os.path.join(base_path, "data\\raw\\"), # change this if you want to put the data somewhere else.
+        "processed_data_path": os.path.join(base_path, "data\\processed\\") # change this if you want to put the data somewhere else.
     }
 
     return paths
